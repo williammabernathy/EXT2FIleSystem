@@ -1,11 +1,15 @@
 package ext2filesystem;
 
 import java.util.Scanner;
+import java.io.*;
+import java.nio.*;
 
 public class EXT2FileSystem 
 {
     //used to list current working directory
     private static String dir = "";
+    private static RandomAccessFile raf;
+    private static ByteBuffer buff;
     
     //check the split user input
     //ie array will contain:
@@ -39,11 +43,21 @@ public class EXT2FileSystem
         }
     }
     
-    public static void main(String[] args) 
+    public static byte[] readData() throws IOException
+    {
+        int offset = 1024;
+        byte[] data = new byte[offset];
+        raf.seek(offset);
+        raf.readFully(data);
+        
+        return data;
+    }
+    
+    public static void main(String[] args) throws IOException
     {
         boolean running = true;                                 //is instance running
         Scanner input = new Scanner(System.in);                 //input scanner
-        String userInput = "";                                  //string to store user input
+        String userInput;                                  //string to store user input
         String[] splitInput;                                    //array to handle split user input
         
         /*
@@ -53,11 +67,36 @@ public class EXT2FileSystem
         */
         
         //test dir for visualizing
-        dir = "C:/users/willthethrill/";
+        dir = "users/willthethrill/";
+        
+        try
+        {
+            raf = new RandomAccessFile("virtdisk", "r");
+        }
+        catch(IOException e)
+        {
+            System.out.println("Something went wong.");
+        }
+        
+        
+        byte[] dataConv = readData();
+        
+        buff = ByteBuffer.wrap(dataConv);
+        buff.order(ByteOrder.LITTLE_ENDIAN);
+        
+        byte[] char_bytes = new byte[16];
+
+        for(int i = 0; i < 16; i++) 
+        {
+            char_bytes[i] = buff.get(128 + i);
+        }
+
+        //converting the bytes that contain the name to a String
+        String volumeName = new String(char_bytes);
         
         while(running)
         {
-            System.out.print("DIR>" + dir + ">>>");
+            System.out.print(volumeName + "/" + dir + " >>> ");
             userInput = input.next();
             
             splitInput = userInput.split(" ");
