@@ -37,7 +37,7 @@ public class GroupDescriptor
         //get groupDescriptor pointers
         for (int i = 0; i < 15; i++) 
         {
-            groupDescriptorPointer[i] = buff.getInt(inodePointer + (groupDescriptorSize * i));
+            groupDescriptorPointer[i] = buff.getInt((groupDescriptorSize * i) + inodePointer);
         }
     }
     
