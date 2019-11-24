@@ -16,9 +16,9 @@ public class EXT2FileSystem
     //reference:
     //https://www.nongnu.org/ext2-doc/ext2.html#superblock
     
-    private static Inode inode;
-    private static SuperBlock superBlock;
-    private static GroupDescriptor groupDescriptor;
+    private static Inode inode = null;
+    private static SuperBlock superBlock = null;
+    private static GroupDescriptor groupDescriptor = null;
     
     private static int blockTotal;
     private static int blocksPerGroupDescrip;
@@ -75,9 +75,9 @@ public class EXT2FileSystem
         inode = new Inode(rootINodeData); 
     }
     
-    public static byte[] readData(int offset, int breakPoint) throws IOException
+    public static byte[] readData(long offset, long breakPoint) throws IOException
     {
-        byte[] data = new byte[breakPoint];
+        byte[] data = new byte[(int)breakPoint];
         
         //find the referenced offset position, then read all data there
         //store as bytes and return
@@ -146,6 +146,7 @@ public class EXT2FileSystem
                 //check if the path argument is a file
                 if(((int) referencedINode.getMode() & 0x8000) == 0x8000)
                 {
+                    //System.out.println("inside CD check for true");
                     System.out.println("Invalid argument type. The destination is not a directory.");
                 }
                 else
@@ -158,6 +159,7 @@ public class EXT2FileSystem
                 //check if the path argument is a file
                 if(((int) referencedINode.getMode() & 0x8000) == 0x8000)
                 {
+                    //System.out.println("inside ls check for true");
                     System.out.println(pathArg[pathArg.length - 1]);
                 }
                 else
@@ -171,7 +173,7 @@ public class EXT2FileSystem
                 //check if the path argument is a file
                 if(!(((int) referencedINode.getMode() & 0x8000) == 0x8000))
                 {
-                    System.out.println(path+": Is a directory.");
+                    System.out.println(path+" is a directory. Please specify a file.");
                 }
                 else
                 {
@@ -218,7 +220,7 @@ public class EXT2FileSystem
                 }
                 else
                 {
-                    pathStack.push("/"+toPath);
+                    pathStack.push("\\"+toPath);
                 }
             }
         }
@@ -283,7 +285,9 @@ public class EXT2FileSystem
             buffer.order(ByteOrder.LITTLE_ENDIAN);
             int directoryLength;
 
-            for (int j = 0; j < buffer.limit(); j += directoryLength) {
+            for (int j = 0; j < buffer.limit(); j += directoryLength) 
+            {
+                int inodeOffset = buffer.getInt(j);
                 //because the index is 4 bytes long
                 directoryLength = buffer.getInt(j + 4);
 
@@ -296,7 +300,7 @@ public class EXT2FileSystem
                     charBytes[k] = buffer.get(j + k + 8);
                 }
 
-                int containingBlock = Inode.getBlockLoc(2, superBlock, groupDescriptor);
+                int containingBlock = Inode.getBlockLoc(inodeOffset, superBlock, groupDescriptor);
 
                 byte[] otherData = readData(containingBlock, iNodeSize);
 
@@ -306,7 +310,7 @@ public class EXT2FileSystem
                 long fileSize = ((long) iNodeData.getSizeUpper() << 32) | ((long) iNodeData.getSizeLower() & 0xFFFFFFFFL);
 
                 //print inode info
-                System.out.format("UID: %-12s\tGID: %-7s\tFile Size: %-30s\t%-30s%n",
+                System.out.format("UID: %-10s\tGID: %-10s\tFile Size: %-10s\t%-10s%n",
                         iNodeData.getUID(), iNodeData.getGID(), fileSize, new String(charBytes).trim());
             }
         }
@@ -340,7 +344,7 @@ public class EXT2FileSystem
         }
     }
     
-    //read data from third indirect inodes (nested > nested > nested> scenario)
+    //read data from third indirect inodes (nested > nested > nested scenario)
     public static void readThirdIndirect(Inode referencedINode, int blockPointers) throws IOException
     {
         byte[] blockPointerData = readData(blockPointers * 1024, 1024);
@@ -359,7 +363,6 @@ public class EXT2FileSystem
         boolean running = true;                                 //is instance running
         Scanner input = new Scanner(System.in);                 //input scanner
         String userInput;                                       //string to store user input
-        String[] splitInput;                                    //array to handle splitting user input
 
         mountImage();
         

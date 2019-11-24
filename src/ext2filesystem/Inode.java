@@ -18,7 +18,7 @@ public class Inode
     private int mtime;              //16        modification time
     private int	dtime;              //20        deletion time
     private int gid;                //24        
-    private int links;              //26        links count
+    //private int links;              //26        links count
     private int[] blocks;           //28        pointer
     //private int flags;
     //private int osd1;
@@ -34,6 +34,11 @@ public class Inode
         //init block pointer array
         blocks = new int[15];
         
+        initInode();
+    }
+    
+    public void initInode()
+    {
         //get inode table data
         mode = buff.getInt(0);
         uid = buff.getInt(2);
@@ -44,13 +49,13 @@ public class Inode
         mtime = buff.getInt(16);
         dtime = buff.getInt(20);
         gid = buff.getInt(24);
-        links = buff.getInt(26);
+        //links = buff.getInt(26);
 
         for(int i = 0; i < 15; i++)
         {
             //40, 44, 48, 52, etc..
             blocks[i] = buff.getInt(40 + (i * 4));
-            System.out.println("inode blocks init: "+buff.getInt(40 + (i * 4)));
+            //System.out.println("inode blocks init: "+buff.getInt(40 + (i * 4)));
         }
     }
     
@@ -103,12 +108,15 @@ public class Inode
     public static int getBlockLoc(int iNodeOffset, SuperBlock superBlock, GroupDescriptor groupDescriptor) throws IOException
     {
         //get our inode information from the superblock
+        
         //number of inodes in entire system
         int iNodeAmount = superBlock.getINodeCount();
         //System.out.println("number of inodes "+superBlock.getINodeCount());
+        
         //number of inodes per group block
-        int iNodesPerGroup = superBlock.getINodeGroups();
+        int iNodesPerGroup = superBlock.getINodePerGroups();
         //System.out.println("inodes per group "+superBlock.getINodeGroups());
+        
         //size of each inode
         int iNodeSize = superBlock.getINodeSize();
         //System.out.println("inode size "+superBlock.getINodeSize());
@@ -156,9 +164,10 @@ public class Inode
             {
                 //retrieve inode from specified path
                 //then read the data to build a new inode
-                //System.out.println("block location"+Inode.getBlockLoc(inodeOffset, superBlock, groupDescriptor));
+                //System.out.println("block location "+getBlockLoc(inodeOffset, superBlock, groupDescriptor));
                 byte[] iNodeData = EXT2FileSystem.readData((Inode.getBlockLoc(inodeOffset, superBlock, groupDescriptor)), iNodeSize);
                 referencedInode = new Inode(iNodeData);
+                referencedInode.initInode();
             } 
             else 
             {

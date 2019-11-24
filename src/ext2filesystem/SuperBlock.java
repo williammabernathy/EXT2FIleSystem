@@ -10,8 +10,8 @@ public class SuperBlock
     
     private static int iNodeCount;
     private static int blockCount;
-    private static int blocksOfGroups;
-    private static int iNodeGroups;
+    private static int blocksPerGroups;
+    private static int iNodePerGroups;
     private static int iNodeSize;
     private static String volumeRootName;
     
@@ -42,8 +42,8 @@ public class SuperBlock
         //as referenced from documentation link
         iNodeCount = buff.getInt(0);
         blockCount = buff.getInt(4);
-        blocksOfGroups = buff.getInt(32);
-        iNodeGroups = buff.getInt(40);
+        blocksPerGroups = buff.getInt(32);
+        iNodePerGroups = buff.getInt(40);
         iNodeSize = buff.getInt(88);
     }
     
@@ -64,12 +64,12 @@ public class SuperBlock
     
     public int getBlocksOfGroups()
     {
-        return this.blocksOfGroups;
+        return this.blocksPerGroups;
     }
     
-    public int getINodeGroups()
+    public int getINodePerGroups()
     {
-        return this.iNodeGroups;
+        return this.iNodePerGroups;
     }
     
     public int getINodeSize()
