@@ -50,6 +50,7 @@ public class EXT2FileSystem
         blocksPerGroupDescrip = superBlock.getBlocksOfGroups();
         iNodeSize = superBlock.getINodeSize();
         blockGroupAmount = superBlock.calcBlockGroupTotal(blockTotal, blocksPerGroupDescrip);
+        //System.out.println("inode size: " + iNodeSize);
     
         //get all group descriptor data from offset
         //create group descriptor
@@ -57,13 +58,14 @@ public class EXT2FileSystem
         groupDescriptor = new GroupDescriptor(groupDescriptorData, superBlock.getBlocksOfGroups());
         
         //init to root directory
-        pathStack.push("\\");
+        pathStack.push("/");
         currentDirectory = pathStack.peek();
         
         //get all root inode information from offset
         //create initialized inode object
         int rootINodeLoc = inode.getBlockLoc(2, superBlock, groupDescriptor);
         //System.out.println("root inode location: "+rootINodeLoc);
+        
         byte[] rootINodeData = readData(rootINodeLoc, iNodeSize);
         //System.out.println("root inode byte array size: "+rootINodeData.length);
         /*
@@ -116,7 +118,7 @@ public class EXT2FileSystem
         //System.out.println("path: " +path);
         
         //split the path based on \
-        String[] pathArg = path.split("\\\\");
+        String[] pathArg = path.split("/");
         
         //clean up white space in argument
         pathArg = Arrays.stream(pathArg).filter(s -> s.length() > 0).toArray(String[]::new);
@@ -141,8 +143,6 @@ public class EXT2FileSystem
             //change directory
             case "cd":
                 //update inode to specified location
-                inode = referencedINode;
-                
                 //check if the path argument is a file
                 if(((int) referencedINode.getMode() & 0x8000) == 0x8000)
                 {
@@ -151,6 +151,7 @@ public class EXT2FileSystem
                 }
                 else
                 {
+                    inode = referencedINode;
                     updatePath(pathArg);
                 }
                 break;
@@ -159,7 +160,7 @@ public class EXT2FileSystem
                 //check if the path argument is a file
                 if(((int) referencedINode.getMode() & 0x8000) == 0x8000)
                 {
-                    //System.out.println("inside ls check for true");
+                    System.out.println("inside ls check for true");
                     System.out.println(pathArg[pathArg.length - 1]);
                 }
                 else
@@ -208,19 +209,19 @@ public class EXT2FileSystem
     {
         for(String toPath : pathArg)
         {
-            if(toPath.equals("..") && !pathStack.peek().equals("\\"))
+            if(toPath.equals("..") && !pathStack.peek().equals("/"))
             {
                pathStack.pop();
             }
             else if(!toPath.equals(".") && !toPath.equals(".."))
             {
-                if(pathStack.peek().equals("\\"))
+                if(pathStack.peek().equals("/"))
                 {
                     pathStack.push(toPath);
                 }
                 else
                 {
-                    pathStack.push("\\"+toPath);
+                    pathStack.push("/"+toPath);
                 }
             }
         }
@@ -278,18 +279,20 @@ public class EXT2FileSystem
             //the bytes converting to a String and trim() removes whitespace
             String str = new String(blockData).trim();
             System.out.print(str);
+            System.out.println();
         } 
         else 
         {
+            //System.out.println("ls readlscommand throw");
             ByteBuffer buffer = ByteBuffer.wrap(blockData);
             buffer.order(ByteOrder.LITTLE_ENDIAN);
-            int directoryLength;
+            short directoryLength;
 
             for (int j = 0; j < buffer.limit(); j += directoryLength) 
             {
                 int inodeOffset = buffer.getInt(j);
                 //because the index is 4 bytes long
-                directoryLength = buffer.getInt(j + 4);
+                directoryLength = buffer.getShort(j + 4);
 
                 //8 bits in size, located after directoryLength
                 byte nameBytes = buffer.get(j + 6);
@@ -310,8 +313,8 @@ public class EXT2FileSystem
                 long fileSize = ((long) iNodeData.getSizeUpper() << 32) | ((long) iNodeData.getSizeLower() & 0xFFFFFFFFL);
 
                 //print inode info
-                System.out.format("UID: %-10s\tGID: %-10s\tFile Size: %-10s\t%-10s%n",
-                        iNodeData.getUID(), iNodeData.getGID(), fileSize, new String(charBytes).trim());
+                System.out.format("File Size: %-10s\t%-10s%n",
+                        fileSize, new String(charBytes).trim());
             }
         }
     }
@@ -373,6 +376,7 @@ public class EXT2FileSystem
         while(running)
         {
             System.out.print(volumeRootName + currentDirectory + " >>> ");
+            //System.out.print(currentDirectory + " >>> ");
             userInput = input.nextLine();
             
             checkInput(userInput);

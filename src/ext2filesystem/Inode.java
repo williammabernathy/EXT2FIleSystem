@@ -9,17 +9,17 @@ public class Inode
     //reference:
     //https://www.nongnu.org/ext2-doc/ext2.html#inode-table
     
-    private int mode;               //0
-    private int uid;                //2
-    private int	sizeLower;          //4
-    private int sizeUpper;          //108       dir_acl
-    private int atime;              //8         access time
-    private int	ctime;              //12        creation time
-    private int mtime;              //16        modification time
-    private int	dtime;              //20        deletion time
-    private int gid;                //24        
-    //private int links;              //26        links count
-    private int[] blocks;           //28        pointer
+    private short mode;                 //0
+    private short uid;                  //2
+    private int	sizeLower;              //4
+    private int sizeUpper;              //108       dir_acl
+    private int atime;                  //8         access time
+    private int	ctime;                  //12        creation time
+    private int mtime;                  //16        modification time
+    private int	dtime;                  //20        deletion time
+    private short gid;                  //24        
+    //private short links;              //26        links count
+    private int[] blocks;               //28        pointer
     //private int flags;
     //private int osd1;
     //private int generation;
@@ -40,15 +40,15 @@ public class Inode
     public void initInode()
     {
         //get inode table data
-        mode = buff.getInt(0);
-        uid = buff.getInt(2);
+        mode = buff.getShort(0);
+        uid = buff.getShort(2);
         sizeLower = buff.getInt(4);
         sizeUpper = buff.getInt(108);
         atime = buff.getInt(8);
         ctime = buff.getInt(12);
         mtime = buff.getInt(16);
         dtime = buff.getInt(20);
-        gid = buff.getInt(24);
+        gid = buff.getShort(24);
         //links = buff.getInt(26);
 
         for(int i = 0; i < 15; i++)
@@ -64,12 +64,12 @@ public class Inode
         return this.blocks;
     }
     
-    public int getMode()
+    public short getMode()
     {
         return this.mode;
     }
     
-    public int getUID()
+    public short getUID()
     {
         return this.uid;
     }
@@ -100,7 +100,7 @@ public class Inode
         return this.dtime;
     }
     
-    public int getGID()
+    public short getGID()
     {
         return this.gid;
     }
@@ -204,7 +204,7 @@ public class Inode
                 for(int j = 0; j < buff.limit(); j += recordLength) 
                 {
                     //recLength is used to update record length (the loop's step)
-                    recordLength = buff.getInt(j + 4);
+                    recordLength = buff.getShort(j + 4);
                     
                     //using bytearray, get the characters that reference a name
                     //found via pointer + offset locations
