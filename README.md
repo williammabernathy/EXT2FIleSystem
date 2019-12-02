@@ -12,9 +12,9 @@ This project was developed using NetBeans 8.2+. It also requires Java SDK versio
 
 ### Installing
 
-There is no real installation required. This project may be ran from inside the development environment or via the .jar included inside the build folder. 
+There is no real installation required. This project may be ran from inside the development environment or via the .jar included inside the dist folder. 
 
-To run the jar, simply navigate to the jar included with the project inside the build folder. From there, download the .jar and place it, along with the included virtdisk file, inside a folder by themselves. Navigate to the destination via command line and run using:
+To run the jar, simply navigate to the jar included with the project inside the dist folder. From there, download the .jar and place it, along with the included virtdisk file, inside a folder by themselves. Navigate to the destination via command line and run using:
 
 ```
 java -jar "EXT2FileSystem.jar"
